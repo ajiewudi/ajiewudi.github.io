@@ -265,39 +265,49 @@
         }
 
         // --- 4. 处理回信发送 (Formspree) ---
+        // --- 4. 处理回信发送 (修改版：直接调用邮箱) ---
         function handleReplySubmit(e) {
-            e.preventDefault(); // 阻止默认跳转页面
-            
-            const message = document.getElementById('reply-input').value;
-            if (!message.trim()) return;
+            e.preventDefault(); // 阻止页面刷新
 
-            if (!config.formspreeUrl) {
-                alert("你还没有配置 Formspree 链接！\n\n但这模拟成功了：\n" + message);
-                document.getElementById('reply-input').value = "";
-                replyArea.style.display = 'none';
+            const message = document.getElementById('reply-input').value;
+            if (!message.trim()) {
+                alert("还没写内容呢，写几句再发吧~");
                 return;
             }
 
-            // 发送到 Formspree
-            const form = e.target;
-            const data = new FormData(form);
+            // 获取回信的主题
+            const subjectInput = document.getElementById('reply-subject').value;
+            
+            // --- 这里填你的QQ邮箱 ---
+            const myEmail = "3055392767@qq.com"; 
 
-            fetch(config.formspreeUrl, {
-                method: form.method,
-                body: data,
-                headers: { 'Accept': 'application/json' }
-            }).then(response => {
-                if (response.ok) {
-                    alert("回信已成功发送到你的邮箱！🕊️");
-                    document.getElementById('reply-input').value = "";
-                    replyArea.style.display = 'none';
-                } else {
-                    alert("发送失败，请检查配置。");
-                }
-            }).catch(error => {
-                alert("发送出错，网络问题？");
-            });
+            // 生成邮件链接
+            const mailtoLink = `mailto:${myEmail}?subject=${encodeURIComponent(subjectInput)}&body=${encodeURIComponent(message)}`;
+
+            // 提示并跳转
+            if(confirm("写得真好！\n即将为你打开邮件APP发送这封信，请记得在邮件里点击“发送”哦！")) {
+                // 这一步会唤起手机或电脑的邮件软件
+                window.location.href = mailtoLink;
+                
+                // 清空输入框并收起
+                document.getElementById('reply-input').value = "";
+                replyArea.style.display = 'none';
+            }
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         // 临时上传功能
         function triggerUpload() { document.getElementById('file-input').click(); }
