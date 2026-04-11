@@ -170,11 +170,13 @@
         };
 
         // --- 1. 静态加载图片 (不再请求 API) ---
+       // --- 1. 静态加载图片 (不再请求 API) ---
         function renderStaticImages() {
             const container = document.getElementById('floating-container');
+            // 修正：直接循环配置里的文件名
             config.imageFiles.forEach(fileName => {
-                // 直接拼接路径
-                const url = 'https://ajiewudi.github.io/images/${fileName}';
+                // 使用绝对路径最稳妥，防止相对路径在不同层级失效
+                const url = `https://ajiewudi.github.io/images/${fileName}`;
                 createFloatingImage(url);
             });
         }
@@ -183,22 +185,31 @@
             const img = document.createElement('img');
             img.src = url;
             img.className = 'float-img';
+            // 修正：这里直接用 container 变量或者 getElementById
             document.getElementById('floating-container').appendChild(img);
             img.onload = () => animateElement(img);
+            // 增加报错监控，如果图片加载失败会在控制台显示
+            img.onerror = () => console.error("图片加载失败路径:", url);
         }
 
         function animateElement(el) {
             const startX = Math.random() * (window.innerWidth - 100);
             const startY = Math.random() * (window.innerHeight - 100);
-            el.style.left = startX + 'px'; el.style.top = startY + 'px';
-            let vx = (Math.random() - 0.5) * 1; let vy = (Math.random() - 0.5) * 1;
+            el.style.left = startX + 'px'; 
+            el.style.top = startY + 'px';
+            let vx = (Math.random() - 0.5) * 1; 
+            let vy = (Math.random() - 0.5) * 1;
 
             function move() {
+                // 增加安全检查，防止弹窗关闭时报错
+                if(!el || !el.style) return;
                 let rect = el.getBoundingClientRect();
-                let x = parseFloat(el.style.left); let y = parseFloat(el.style.top);
-                if (rect.left<=0 || rect.right>=window.innerWidth) vx*=-1;
-                if (rect.top<=0 || rect.bottom>=window.innerHeight) vy*=-1;
-                el.style.left = (x+vx)+'px'; el.style.top = (y+vy)+'px';
+                let x = parseFloat(el.style.left) || 0; 
+                let y = parseFloat(el.style.top) || 0;
+                if (rect.left <= 0 || rect.right >= window.innerWidth) vx *= -1;
+                if (rect.top <= 0 || rect.bottom >= window.innerHeight) vy *= -1;
+                el.style.left = (x + vx) + 'px'; 
+                el.style.top = (y + vy) + 'px';
                 requestAnimationFrame(move);
             }
             move();
