@@ -174,7 +174,7 @@
             const container = document.getElementById('floating-container');
             config.imageFiles.forEach(fileName => {
                 // 直接拼接路径
-                const url = `images/${fileName}`;
+                const url = `./images/${fileName}`;
                 createFloatingImage(url);
             });
         }
@@ -211,7 +211,7 @@
             for (const fileName of config.letterFiles) {
                 try {
                     // 直接根据文件名请求内容
-                    const res = await fetch(`letters/${fileName}`);
+                    const res = await fetch(`./letters/${fileName}`);
                     if (!res.ok) continue;
                     const text = await res.text();
                     
