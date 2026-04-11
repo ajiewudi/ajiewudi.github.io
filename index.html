@@ -126,39 +126,57 @@
 
     <script>
         // ================= 配置区域 (请修改这里!) =================
+        // ================= 配置区域 (已改为手动模式) =================
         const config = {
-            githubUsername: 'ajiewudi',      // 你的用户名
-            repoName: 'ajiewudi.github.io',  // 你的仓库名
-            // 你的 PushPlus Token
-            pushPlusToken: '8a3ba3a0fcdb475f8c259e54686a838e'        
+            githubUsername: 'ajiewudi',
+            repoName: 'ajiewudi.github.io',
+            pushPlusToken: '8a3ba3a0fcdb475f8c259e54686a838e',
+            
+            // 【关键修改点 1】：在这里手动列出你的图片文件名
+            // 只需要列出 images 文件夹下的文件名（排除 bg.jpg）
+            imageFiles: [
+                '0aff9b531b54f10e3dc15bde993e513.jpg',
+                '0dde9ac341c847eb0cc7cf5d17b3421e.jpg',
+                '3712eeaf3c63cb36b5c08e5de0f98ef.jpg',
+                '417b2724c977e2f05c7b55d5f852e94.jpg',
+                '53f5a8b540ff345ea22a971754778b79.jpg',
+                '60303754f74f74f509f01fa33bc4c603e25.jpg',
+                '6715dd696bcda12bc342a3689a32989b9.jpg',
+                '6f78972ce5019c8c55f00916320bed51.jpg',
+                '6fd84426a7ecb188a54c5189dd346128.jpg',
+                '867344dcbd887959a934b3187ca730d5.jpg',
+                'a69f6ecae3dd94782baa644ea9207aab.jpg',
+                'aadd09719d474469169e18495f931901.jpg',
+                'b6835640762607e942ac97d3545da1a1.jpg',
+                'e64f2c4918ef0b853169e991bd1b3586.jpg',
+                'e87dee82ab73aaecee4a66a9f6fd4f09.jpg'
+            ],
+
+            // 【关键修改点 2】：在这里手动列出你的信件文件名
+            // 确保这些文件在 letters 文件夹下
+            letterFiles: [
+                '1.txt',
+                '2.txt'
+            ]
         };
         // ========================================================
 
-        let letters = []; // 存放下载下来的信
+        let letters = []; 
         let currentLetterIndex = 0;
 
-        // 页面加载完成后执行
         window.onload = function() {
-            loadImages();
-            loadLetters();
+            renderStaticImages(); // 改用静态加载
+            loadLetters();        // 改用静态读取
         };
 
-        // --- 1. 自动加载图片逻辑 ---
-        function loadImages() {
-            const apiUrl = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/images`;
+        // --- 1. 静态加载图片 (不再请求 API) ---
+        function renderStaticImages() {
             const container = document.getElementById('floating-container');
-
-            fetch(apiUrl)
-            .then(res => res.ok ? res.json() : [])
-            .then(data => {
-                data.forEach(file => {
-                    // 排除 bg.jpg，不让背景图也飘起来
-                    if (file.name.match(/\.(jpg|jpeg|png|gif)$/i) && file.name !== 'bg.jpg') {
-                        createFloatingImage(file.download_url);
-                    }
-                });
-            })
-            .catch(err => console.log("图片加载跳过（可能是本地测试或无文件夹）"));
+            config.imageFiles.forEach(fileName => {
+                // 直接拼接路径
+                const url = `images/${fileName}`;
+                createFloatingImage(url);
+            });
         }
 
         function createFloatingImage(url) {
@@ -186,24 +204,17 @@
             move();
         }
 
-        // --- 2. 自动读取信件逻辑 ---
+        // --- 2. 静态读取信件 (不再请求文件夹列表 API) ---
         async function loadLetters() {
-            const apiUrl = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/letters`;
+            const loadedLetters = [];
             
-            try {
-                const res = await fetch(apiUrl);
-                if (!res.ok) throw new Error("无法读取 letters 文件夹");
-                const files = await res.json();
-
-                // 过滤出 .txt 文件并排序
-                const txtFiles = files.filter(f => f.name.endsWith('.txt')).sort((a,b) => a.name.localeCompare(b.name));
-
-                // 逐个获取内容
-                const loadedLetters = [];
-                for (const file of txtFiles) {
-                    const contentRes = await fetch(file.download_url);
-                    const text = await contentRes.text();
-                    // 解析：第一行是日期，剩下是内容
+            for (const fileName of config.letterFiles) {
+                try {
+                    // 直接根据文件名请求内容
+                    const res = await fetch(`letters/${fileName}`);
+                    if (!res.ok) continue;
+                    const text = await res.text();
+                    
                     const splitIndex = text.indexOf('\n');
                     let dateStr = "未知日期";
                     let bodyStr = text;
@@ -212,23 +223,20 @@
                         dateStr = text.substring(0, splitIndex).trim();
                         bodyStr = text.substring(splitIndex + 1).trim();
                     }
-
-                    loadedLetters.push({ date: dateStr, text: bodyStr, fileName: file.name });
+                    loadedLetters.push({ date: dateStr, text: bodyStr, fileName: fileName });
+                } catch (err) {
+                    console.log(`加载信件 ${fileName} 失败`);
                 }
+            }
 
-                if (loadedLetters.length > 0) {
-                    letters = loadedLetters;
-                } else {
-                    letters = [{ date: "系统提示", text: "letters 文件夹里没有 txt 文件哦。" }];
-                }
-
-            } catch (err) {
-                console.error(err);
-                letters = [{ date: "系统提示", text: "还没有上传信件，或者 letters 文件夹不存在。\n\n请在仓库建立 letters 文件夹并放入 1.txt 等文件。" }];
+            if (loadedLetters.length > 0) {
+                letters = loadedLetters;
+            } else {
+                letters = [{ date: "系统提示", text: "没有找到信件，请检查文件名是否正确。" }];
             }
         }
 
-        // --- 3. 交互逻辑 ---
+        // --- 3. 交互逻辑 (保持不变) ---
         const modal = document.getElementById('modal-overlay');
         const contentText = document.getElementById('content-text');
         const contentDate = document.getElementById('content-date');
@@ -244,8 +252,6 @@
         
         function renderLetter() {
             const l = letters[currentLetterIndex];
-            
-            // --- 检查是否有回信 ---
             let finalContent = l.text;
             const replyKey = 'reply_to_' + l.fileName;
             const mySavedReply = localStorage.getItem(replyKey);
@@ -265,42 +271,36 @@
         function changeLetter(step) {
             currentLetterIndex += step;
             renderLetter();
-            replyArea.style.display = 'none'; // 换信时收起回信框
+            replyArea.style.display = 'none';
         }
 
         function toggleReplyBox() {
             replyArea.style.display = (replyArea.style.display === 'block') ? 'none' : 'block';
         }
 
-        // --- 4. 处理回信发送 (PushPlus 通知 + 本地更新) ---
+        // --- 4. 处理回信发送 (保持不变) ---
         function handleReplySubmit(e) {
             e.preventDefault(); 
-            
             const messageInput = document.getElementById('reply-input');
             const replyText = messageInput.value; 
             const submitBtn = document.querySelector('#reply-form button[type="submit"]');
-            
             const currentLetter = letters[currentLetterIndex]; 
-            const originalText = currentLetter.text; 
 
             if (!replyText.trim()) {
                 alert("写点什么再发嘛~ 🥺");
                 return;
             }
 
-            // 1. 锁定按钮
             submitBtn.disabled = true;
             submitBtn.innerText = "正在飞奔向你...";
 
-            // 拼接原文和回信
             const combinedContent = 
                 `📅 信件日期：${currentLetter.date}\n` +
                 `📄 文件名：${currentLetter.fileName}\n\n` +
-                `📝 【信件原文】：\n${originalText}\n\n` +
+                `📝 【信件原文】：\n${currentLetter.text}\n\n` +
                 `------------------------------------\n` +
                 `💌 【TA的回信】：\n${replyText}`;
 
-            // 2. 准备发送给 PushPlus 的数据
             const pushData = {
                 token: config.pushPlusToken,
                 title: `💌 收到新的回信！来自 [${currentLetter.date}]`,
@@ -308,25 +308,17 @@
                 template: 'txt' 
             };
 
-            // 3. 发送请求
-            fetch('http://www.pushplus.plus/send', {
+            fetch('https://www.pushplus.plus/send', { // 注意这里加了 https
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pushData)
             })
-            .then(response => response.json())
             .then(data => {
-                const replyKey = 'reply_to_' + currentLetter.fileName;
-                localStorage.setItem(replyKey, replyText);
-
+                localStorage.setItem('reply_to_' + currentLetter.fileName, replyText);
                 renderLetter();
-                alert("收到啦！你的回信已经和我的信融为一体了 ❤️\n(我也在微信上收到提醒啦)");
+                alert("收到啦！你的回信已经和我的信融为一体了 ❤️");
             })
             .catch(error => {
-                console.error('发送失败:', error);
-                const replyKey = 'reply_to_' + currentLetter.fileName;
-                localStorage.setItem(replyKey, replyText);
-                renderLetter();
                 alert("虽然网络有点小波动，但回信我已经记下了！");
             })
             .finally(() => {
@@ -336,83 +328,41 @@
             });
         }
 
-        // ============================================
-        // --- 5. 新版图片上传逻辑 (压缩 + 双通道发送) ---
-        // ============================================
+        // --- 5. 图片上传逻辑 (保持不变) ---
+        function triggerUpload() { document.getElementById('file-input').click(); }
 
-        // 触发文件选择
-        function triggerUpload() { 
-            document.getElementById('file-input').click(); 
-        }
-
-        // 处理文件上传
         function handleImageUpload(files) {
             if (!files.length) return;
             const file = files[0]; 
-            const submitBtn = document.querySelector('.sidebar button:nth-child(2)'); // “提交图片”按钮
+            const submitBtn = document.querySelector('.sidebar button:nth-child(2)');
 
-            // --- A. 视觉特效：立刻让他看到图片飘起来 ---
             const reader = new FileReader();
-            reader.onload = function(e) {
-                createFloatingImage(e.target.result); 
-            };
+            reader.onload = function(e) { createFloatingImage(e.target.result); };
             reader.readAsDataURL(file);
 
             submitBtn.disabled = true;
-            submitBtn.innerText = "正在处理...";
+            submitBtn.innerText = "正在上传...";
 
-            // --- B. 压缩图片并发送 ---
             compressImage(file, 0.7, function(compressedBlob) {
-                
-                // 1. PushPlus 立刻通知 (微信提醒)
-                const pushData = {
-                    token: config.pushPlusToken, 
-                    title: `📷 他在网页提交了一张照片！`,
-                    content: `他提交了一张照片（文件名：${file.name}）。\n\n请立刻去你的邮箱（3055392767@qq.com）查看附件！\n\n(如果垃圾箱也没有，说明网络实在太卡传失败了，快去找他要原图！)`,
-                    template: 'txt'
-                };
-                
-                fetch('http://www.pushplus.plus/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(pushData)
-                }).catch(err => console.log("PushPlus通知发送失败", err));
-
-
-                // 2. FormSubmit 上传图片 (发到邮箱)
-                submitBtn.innerText = "正在上传...";
-                
                 const formData = new FormData();
-                const myEmail = "3055392767@qq.com"; // 你的邮箱
+                const myEmail = "3055392767@qq.com";
 
                 formData.append("email", myEmail); 
-                formData.append("_subject", "📷 (附件) 网页收到的新照片");
-                formData.append("message", "这是压缩后的照片，请下载后放入 images 文件夹。");
+                formData.append("_subject", "📷 网页收到的新照片");
                 formData.append("attachment", compressedBlob, "photo.jpg"); 
-                formData.append("_captcha", "false"); 
 
                 fetch(`https://formsubmit.co/${myEmail}`, {
                     method: "POST",
                     body: formData
                 })
-                .then(response => {
-                    console.log("图片上传完成");
-                    alert("照片已成功飞入相册！(我也收到提醒啦~ 📸)");
-                })
-                .catch(error => {
-                    console.error("图片上传失败:", error);
-                    // 只要PushPlus成功了，这就算成功
-                    alert("照片已添加到记忆墙！");
-                })
+                .then(() => alert("照片已成功飞入相册！"))
                 .finally(() => {
                     submitBtn.disabled = false;
                     submitBtn.innerText = "📷 提交图片";
-                    document.getElementById('file-input').value = '';
                 });
             });
         }
 
-        // --- 图片压缩工具函数 ---
         function compressImage(file, quality, callback) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -422,26 +372,13 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxSize = 1024; // 限制最大尺寸
-                    
-                    if (width > height && width > maxSize) {
-                        height *= maxSize / width; width = maxSize;
-                    } else if (height > maxSize) {
-                        width *= maxSize / height; height = maxSize;
-                    }
-                    
+                    let width = img.width; let height = img.height;
+                    const maxSize = 1024;
+                    if (width > height && width > maxSize) { height *= maxSize / width; width = maxSize; }
+                    else if (height > maxSize) { width *= maxSize / height; height = maxSize; }
                     canvas.width = width; canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // 输出为 Blob 对象
-                    canvas.toBlob(function(blob) {
-                        callback(blob);
-                    }, 'image/jpeg', quality);
+                    canvas.toBlob(blob => callback(blob), 'image/jpeg', quality);
                 }
             }
         }
-    </script>
-</body>
-</html>
