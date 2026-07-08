@@ -3,99 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>给特别的你</title>
+    <title>给特别的你 - 专属时光物语</title>
+    <!-- 引入炫酷的小图标和精美字体 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- 全局设置 --- */
+        /* --- 全局精致美化 --- */
+        :root {
+            --primary-pink: #ffb7b2;
+            --hover-pink: #ff9e99;
+            --bg-cream: #fffdf6;
+            --text-dark: #4a4a4a;
+            --accent-blue: #b5e2fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
         body, html {
             margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            overflow: hidden; 
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            width: 100%; min-height: 100%;
+            background-color: var(--bg-cream);
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: var(--text-dark);
         }
 
-        /* --- 背景图设置 --- */
-        body {
-            /* 这里设置背景图，叠加一层半透明白色让文字更清晰 */
-            background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
-                        url('images/bg.jpg') no-repeat center center fixed;
-            background-size: cover; /* 让图片铺满屏幕 */
-        }
+        /* --- 隐藏滚动条但保留滚动功能 --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-pink); border-radius: 10px; }
 
-        /* --- 漂浮图片区域 --- */
-        #floating-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; pointer-events: none; 
+        /* --- 顶栏导航 --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 40px; background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px); z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
+        .nav-logo { font-size: 20px; font-weight: bold; color: var(--text-dark); text-decoration: none; }
+        .nav-logo i { color: var(--primary-pink); margin-right: 5px; }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-size: 15px; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--primary-pink); }
 
-        .float-img {
-            position: absolute; opacity: 0.9; 
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: transform 0.5s ease;
-            max-width: 200px; max-height: 200px;
-            object-fit: cover;
-            border: 3px solid #fff; /* 给图片加个白边框，像拍立得 */
+        /* --- Section 1: 华丽首屏 (Hero Section) --- */
+        .hero-section {
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 0 40px;
+            background: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.1)), url('images/bg.jpg') no-repeat center center;
+            background-size: cover;
         }
-
-        /* --- 左侧按钮 --- */
-        .sidebar {
-            position: fixed; left: 20px; top: 100px;
-            display: flex; flex-direction: column; gap: 20px; z-index: 100; 
+        .hero-content {
+            text-align: center; background: rgba(255, 255, 255, 0.85);
+            padding: 40px 60px; border-radius: 24px; max-width: 600px;
+            backdrop-filter: blur(5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            animation: fadeIn 1s ease-out;
         }
-
-        .cute-btn {
-            background-color: rgba(255, 183, 178, 0.9); /* 半透明红 */
-            backdrop-filter: blur(5px);
-            color: white; border: none; padding: 15px 25px;
-            border-radius: 20px; font-size: 16px; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-        }
-        .cute-btn:hover { transform: scale(1.05); background-color: #ff9e99; }
-
-        /* --- 弹窗样式 --- */
-        #modal-overlay {
-            display: none; position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(3px); /* 背景模糊更高级 */
-            z-index: 200; justify-content: center; align-items: center;
-        }
-
-        .letter-paper {
-            background: #fffdf0; width: 85%; max-width: 500px;
-            padding: 40px; border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            max-height: 80vh; overflow-y: auto; /* 内容太长可滚动 */
-        }
-
-        .letter-content { font-size: 17px; color: #444; min-height: 100px; white-space: pre-wrap; line-height: 1.8; }
-        .letter-date { text-align: right; font-size: 13px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;}
+        .hero-content h1 { font-size: 32px; margin-bottom: 15px; color: #333; }
+        .hero-content p { font-size: 16px; line-height: 1.8; color: #666; margin-bottom: 30px; }
         
-        .letter-controls { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .ctrl-btn { background: #8ec5fc; border: none; padding: 8px 16px; border-radius: 20px; color: white; cursor: pointer; font-size: 14px;}
-        .ctrl-btn:disabled { background: #e0e0e0; cursor: not-allowed; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ccc; }
+        /* --- 交互按钮组 --- */
+        .btn-group { display: flex; gap: 15px; justify-content: center; }
+        .action-btn {
+            padding: 12px 28px; border-radius: 30px; border: none; font-size: 15px;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-primary { background-color: var(--primary-pink); color: white; }
+        .btn-primary:hover { background-color: var(--hover-pink); transform: translateY(-2px); }
+        .btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid #ddd; }
+        .btn-secondary:hover { background-color: #f9f9f9; transform: translateY(-2px); }
 
-        /* --- 回信区域 --- */
-        #reply-area { display: none; margin-top: 20px; background: #fafafa; padding: 15px; border-radius: 8px; }
-        #reply-input { width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; box-sizing: border-box; font-family: inherit; resize: none; }
+        /* --- 通用 Section 样式 --- */
+        .section-container { padding: 80px 10% 60px 10%; text-align: center; }
+        .section-title { font-size: 26px; margin-bottom: 40px; position: relative; display: inline-block; }
+        .section-title::after {
+            content: ''; display: block; width: 40px; height: 3px; 
+            background: var(--primary-pink); margin: 8px auto 0 auto; border-radius: 2px;
+        }
+
+        /* --- Section 2: 飞游照片墙 (漂浮照片区改成有序的精美相册) --- */
+        .photo-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px; margin-top: 20px;
+        }
+        .polaroid-card {
+            background: white; padding: 12px 12px 25px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); border-radius: 4px;
+            transition: transform 0.3s; cursor: pointer; position: relative;
+        }
+        .polaroid-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 2px; }
+        .polaroid-card:hover { transform: rotate(2deg) scale(1.03); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        
+        /* --- Section 3: 关于/回忆时光轴 --- */
+        .timeline { max-width: 800px; margin: 0 auto; position: relative; padding: 20px 0; }
+        .timeline::before {
+            content: ''; position: absolute; left: 50%; top: 0; width: 2px; height: 100%;
+            background: #eddcd2; transform: translateX(-50%);
+        }
+        .timeline-item { width: 50%; padding: 20px 40px; box-sizing: border-box; position: relative; text-align: right; }
+        .timeline-item:nth-child(even) { left: 50%; text-align: left; }
+        .timeline-item::after {
+            content: '♥'; position: absolute; right: -10px; top: 25px;
+            background: var(--bg-cream); color: var(--primary-pink);
+            width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px;
+        }
+        .timeline-item:nth-child(even)::after { left: -10px; }
+        .timeline-content { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .timeline-date { font-weight: bold; color: var(--primary-pink); margin-bottom: 5px; }
+
+        /* --- 弹窗样式美化 --- */
+        #modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 2000;
+            justify-content: center; align-items: center;
+        }
+        .letter-paper {
+            background: #fffdf0; width: 90%; max-width: 550px; padding: 40px; border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15); position: relative; max-height: 80vh; overflow-y: auto;
+        }
+        .letter-content { font-size: 16px; color: #444; min-height: 120px; white-space: pre-wrap; line-height: 1.8; }
+        .letter-date { text-align: right; font-size: 13px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;}
+        .letter-controls { margin-top: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .ctrl-btn { background: var(--accent-blue); border: none; padding: 10px 20px; border-radius: 20px; color: #4a4a4a; cursor: pointer; font-size: 14px; transition: 0.3s;}
+        .ctrl-btn:disabled { background: #e0e0e0; cursor: not-allowed; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #aaa; }
+        #reply-area { display: none; margin-top: 20px; background: #fdfdfd; padding: 15px; border-radius: 12px; border: 1px dashed var(--primary-pink); }
+        #reply-input { width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; resize: none; font-family: inherit; }
+
+        /* --- 页脚 --- */
+        footer { background: #f7f5f0; padding: 30px; text-align: center; font-size: 14px; color: #999; border-top: 1px solid #eee; }
+
+        /* --- 动画 --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .timeline::before { left: 40px; }
+            .timeline-item { width: 100%; text-align: left !important; padding-left: 70px; padding-right: 20px; }
+            .timeline-item::after { left: 30px !important; }
+            .hero-content { padding: 30px 20px; }
+            .btn-group { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="floating-container"></div>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <a href="#" class="nav-logo"><i class="fa-solid fa-heart"></i> 给特别的你</a>
+        <div class="nav-links">
+            <a href="#home">首页</a>
+            <a href="#gallery">时光相册</a>
+            <a href="#timeline">回忆轴</a>
+        </div>
+    </nav>
 
-    <div class="sidebar">
-        <button class="cute-btn" onclick="openLetter()">🕊️ 飞鸽传信</button>
-        <button class="cute-btn" onclick="triggerUpload()">📷 提交图片</button>
-    </div>
+    <!-- 首页 Section -->
+    <section id="home" class="hero-section">
+        <div class="hero-content">
+            <h1>遇见你，是最美好的时光</h1>
+            <p>在这个属于我们的角落里，记录着零碎的欢喜、写给彼此的信件，以及那些不经意间定格的瞬间。点击下方开启属于我们的秘密通道。</p>
+            <div class="btn-group">
+                <button class="action-btn btn-primary" onclick="openLetter()">
+                    <i class="fa-solid fa-paper-plane"></i> 🕊️ 飞鸽传信
+                </button>
+                <button class="action-btn btn-secondary" onclick="triggerUpload()">
+                    <i class="fa-solid fa-camera"></i> 📷 提交新照片
+                </button>
+            </div>
+        </div>
+    </section>
 
-    <!-- 隐藏的文件输入 (关键修改：添加 name="attachment" 并绑定新函数) -->
+    <!-- 隐藏的文件输入 -->
     <input type="file" id="file-input" name="attachment" accept="image/*" style="display: none;" onchange="handleImageUpload(this.files)">
 
-    <!-- 弹窗 -->
+    <!-- 时光相册 Section -->
+    <section id="gallery" class="section-container" style="background-color: #fff;">
+        <h2 class="section-title">📷 时光相册壁</h2>
+        <p style="color: #888; margin-bottom: 30px;">我们一起走过的足迹，都在这里闪闪发光</p>
+        <div class="photo-grid" id="photo-container">
+            <!-- 动态加载的拍立得照片会存放在这里 -->
+        </div>
+    </section>
+
+    <!-- 时光回忆轴 Section -->
+    <section id="timeline" class="section-container">
+        <h2 class="section-title">⏳ 我们的回忆时光轴</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-date">2026年 某月某日</div>
+                    <p>第一次点亮这个网页，属于我们的秘密基地正式成立啦 🎉</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-date">下一个纪念日</div>
+                    <p>等待着和你一起在这里写下更多有趣、浪漫的故事……</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 弹窗信纸 -->
     <div id="modal-overlay">
         <div class="letter-paper">
             <div class="close-btn" onclick="closeLetter()">×</div>
@@ -108,112 +220,84 @@
             <!-- 回信表单 -->
             <form id="reply-form" onsubmit="handleReplySubmit(event)">
                 <div id="reply-area">
-                    <p style="font-size: 14px; color: #888; margin:0 0 5px 0;">回信：</p>
-                    <textarea id="reply-input" name="message" placeholder="写下你想说的话...（点击发送后我会收到邮件）" required></textarea>
-                    <!-- 隐藏字段 -->
+                    <p style="font-size: 14px; color: #888; margin:0 0 5px 0;">回信内容：</p>
+                    <textarea id="reply-input" name="message" placeholder="写下你想说的话...（发送后我会立刻收到通知哦）" required></textarea>
                     <input type="hidden" id="reply-subject" name="subject" value="来自网页的新回信">
-                    <button type="submit" class="ctrl-btn" style="margin-top: 10px; background-color: #ffb7b2; width: 100%;">发送回信</button>
+                    <button type="submit" class="ctrl-btn" style="margin-top: 10px; background-color: var(--primary-pink); width: 100%; color: white;">确认发送</button>
                 </div>
             </form>
 
             <div class="letter-controls">
                 <button class="ctrl-btn" id="prev-btn" onclick="changeLetter(-1)">上一封</button>
-                <button class="ctrl-btn" style="background-color: #ff9e99;" onclick="toggleReplyBox()">💌 写回信</button>
+                <button class="ctrl-btn" style="background-color: var(--primary-pink); color: white;" onclick="toggleReplyBox()">💌 写回信</button>
                 <button class="ctrl-btn" id="next-btn" onclick="changeLetter(1)">下一封</button>
             </div>
         </div>
     </div>
 
+    <footer>
+        <p>诚挚呈现给特别的你 | Powered by Love & Code ❤️</p>
+    </footer>
+
     <script>
-        // ================= 配置区域 (请修改这里!) =================
-        // ================= 配置区域 (已改为手动模式) =================
+        // ================= 你的核心原有配置区域 =================
         const config = {
             githubUsername: 'ajiewudi',
             repoName: 'ajiewudi.github.io',
             pushPlusToken: '8a3ba3a0fcdb475f8c259e54686a838e',
-            
-            // 【关键修改点 1】：在这里手动列出你的图片文件名
-            // 只需要列出 images 文件夹下的文件名（排除 bg.jpg）
-            imageFiles: ['1.jpg', '2.jpg', '3.jpg', '4.jpg'] // 这样绝对不会写错！
-
-            // 【关键修改点 2】：在这里手动列出你的信件文件名
-            // 确保这些文件在 letters 文件夹下
-            letterFiles: [
-                '1.txt',
-                '2.txt'
-            ]
+            imageFiles: ['1.jpg', '2.jpg', '3.jpg', '4.jpg'], 
+            letterFiles: ['1.txt', '2.txt']
         };
-        // ========================================================
 
         let letters = []; 
         let currentLetterIndex = 0;
 
         window.onload = function() {
-            renderStaticImages(); // 改用静态加载
-            loadLetters();        // 改用静态读取
+            renderGallery(); 
+            loadLetters();        
         };
 
-        // --- 1. 静态加载图片 (不再请求 API) ---
-       // --- 1. 静态加载图片 (不再请求 API) ---
-        function renderStaticImages() {
-            const container = document.getElementById('floating-container');
-            // 修正：直接循环配置里的文件名
-            config.imageFiles.forEach(fileName => {
-                // 使用绝对路径最稳妥，防止相对路径在不同层级失效
+        // --- 1. 渲染精美的相册壁 (取代之前满屏幕乱飞的样式) ---
+        function renderGallery() {
+            const container = document.getElementById('photo-container');
+            container.innerHTML = ''; // 清空
+            config.imageFiles.forEach((fileName, index) => {
                 const url = `https://ajiewudi.github.io/images/${fileName}`;
-                createFloatingImage(url);
+                
+                // 创建极具情感风的拍立得卡片布局
+                const card = document.createElement('div');
+                card.className = 'polaroid-card';
+                card.innerHTML = `
+                    <img src="${url}" alt="Memory" onerror="this.src='https://via.placeholder.com/200?text=Missing+Photo'">
+                    <p style="margin: 10px 0 0 0; font-family: 'Courier New', sans-serif; font-size:13px; color:#777;">Memory #${index + 1}</p>
+                `;
+                container.appendChild(card);
             });
         }
 
-        function createFloatingImage(url) {
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'float-img';
-            // 修正：这里直接用 container 变量或者 getElementById
-            document.getElementById('floating-container').appendChild(img);
-            img.onload = () => animateElement(img);
-            // 增加报错监控，如果图片加载失败会在控制台显示
-            img.onerror = () => console.error("图片加载失败路径:", url);
+        // 动态将新上传的临时图丢进相册里展示
+        function appendToGallery(src) {
+            const container = document.getElementById('photo-container');
+            const card = document.createElement('div');
+            card.className = 'polaroid-card';
+            card.innerHTML = `
+                <img src="${src}">
+                <p style="margin: 10px 0 0 0; font-family: 'Courier New', sans-serif; font-size:13px; color:#777;">New Memory ✨</p>
+            `;
+            container.insertBefore(card, container.firstChild); // 插到最前面
         }
 
-        function animateElement(el) {
-            const startX = Math.random() * (window.innerWidth - 100);
-            const startY = Math.random() * (window.innerHeight - 100);
-            el.style.left = startX + 'px'; 
-            el.style.top = startY + 'px';
-            let vx = (Math.random() - 0.5) * 1; 
-            let vy = (Math.random() - 0.5) * 1;
-
-            function move() {
-                // 增加安全检查，防止弹窗关闭时报错
-                if(!el || !el.style) return;
-                let rect = el.getBoundingClientRect();
-                let x = parseFloat(el.style.left) || 0; 
-                let y = parseFloat(el.style.top) || 0;
-                if (rect.left <= 0 || rect.right >= window.innerWidth) vx *= -1;
-                if (rect.top <= 0 || rect.bottom >= window.innerHeight) vy *= -1;
-                el.style.left = (x + vx) + 'px'; 
-                el.style.top = (y + vy) + 'px';
-                requestAnimationFrame(move);
-            }
-            move();
-        }
-
-        // --- 2. 静态读取信件 (不再请求文件夹列表 API) ---
+        // --- 2. 读取信件 ---
         async function loadLetters() {
             const loadedLetters = [];
-            
             for (const fileName of config.letterFiles) {
                 try {
-                    // 直接根据文件名请求内容
                     const res = await fetch(`./letters/${fileName}`);
                     if (!res.ok) continue;
                     const text = await res.text();
-                    
                     const splitIndex = text.indexOf('\n');
                     let dateStr = "未知日期";
                     let bodyStr = text;
-                    
                     if (splitIndex !== -1) {
                         dateStr = text.substring(0, splitIndex).trim();
                         bodyStr = text.substring(splitIndex + 1).trim();
@@ -223,15 +307,14 @@
                     console.log(`加载信件 ${fileName} 失败`);
                 }
             }
-
             if (loadedLetters.length > 0) {
                 letters = loadedLetters;
             } else {
-                letters = [{ date: "系统提示", text: "没有找到信件，请检查文件名是否正确。" }];
+                letters = [{ date: "系统提示", text: "没有找到信件，请检查配置。" }];
             }
         }
 
-        // --- 3. 交互逻辑 (保持不变) ---
+        // --- 3. 互动弹窗逻辑 ---
         const modal = document.getElementById('modal-overlay');
         const contentText = document.getElementById('content-text');
         const contentDate = document.getElementById('content-date');
@@ -258,7 +341,6 @@
 
             contentText.textContent = finalContent;
             contentDate.textContent = l.date;
-            
             prevBtn.disabled = currentLetterIndex === 0;
             nextBtn.disabled = currentLetterIndex === letters.length - 1;
         }
@@ -273,7 +355,7 @@
             replyArea.style.display = (replyArea.style.display === 'block') ? 'none' : 'block';
         }
 
-        // --- 4. 处理回信发送 (保持不变) ---
+        // --- 4. 异步处理回信发送 ---
         function handleReplySubmit(e) {
             e.preventDefault(); 
             const messageInput = document.getElementById('reply-input');
@@ -281,10 +363,7 @@
             const submitBtn = document.querySelector('#reply-form button[type="submit"]');
             const currentLetter = letters[currentLetterIndex]; 
 
-            if (!replyText.trim()) {
-                alert("写点什么再发嘛~ 🥺");
-                return;
-            }
+            if (!replyText.trim()) return;
 
             submitBtn.disabled = true;
             submitBtn.innerText = "正在飞奔向你...";
@@ -303,57 +382,52 @@
                 template: 'txt' 
             };
 
-            fetch('https://www.pushplus.plus/send', { // 注意这里加了 https
+            fetch('https://www.pushplus.plus/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pushData)
             })
-            .then(data => {
+            .then(() => {
                 localStorage.setItem('reply_to_' + currentLetter.fileName, replyText);
                 renderLetter();
-                alert("收到啦！你的回信已经和我的信融为一体了 ❤️");
+                alert("收到啦！你的回信已经牢牢锁在信箱里了 ❤️");
             })
-            .catch(error => {
-                alert("虽然网络有点小波动，但回信我已经记下了！");
-            })
+            .catch(() => alert("回信已在本地保存！"))
             .finally(() => {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "发送回信";
+                submitBtn.innerText = "确认发送";
                 messageInput.value = ""; 
             });
         }
 
-        // --- 5. 图片上传逻辑 (保持不变) ---
+        // --- 5. 图片上传逻辑 ---
         function triggerUpload() { document.getElementById('file-input').click(); }
 
         function handleImageUpload(files) {
             if (!files.length) return;
             const file = files[0]; 
-            const submitBtn = document.querySelector('.sidebar button:nth-child(2)');
+            const heroBtn = document.querySelector('.btn-secondary');
 
+            // 预览：直接丢进相册区
             const reader = new FileReader();
-            reader.onload = function(e) { createFloatingImage(e.target.result); };
+            reader.onload = function(e) { appendToGallery(e.target.result); };
             reader.readAsDataURL(file);
 
-            submitBtn.disabled = true;
-            submitBtn.innerText = "正在上传...";
+            heroBtn.disabled = true;
+            heroBtn.innerText = "正在同步上传...";
 
             compressImage(file, 0.7, function(compressedBlob) {
                 const formData = new FormData();
                 const myEmail = "3055392767@qq.com";
-
                 formData.append("email", myEmail); 
-                formData.append("_subject", "📷 网页收到的新照片");
+                formData.append("_subject", "📷 纪念站收到的新照片");
                 formData.append("attachment", compressedBlob, "photo.jpg"); 
 
-                fetch(`https://formsubmit.co/${myEmail}`, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(() => alert("照片已成功飞入相册！"))
+                fetch(`https://formsubmit.co/${myEmail}`, { method: "POST", body: formData })
+                .then(() => alert("照片已成功通过飞鸽送往相册归档！"))
                 .finally(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "📷 提交图片";
+                    heroBtn.disabled = false;
+                    heroBtn.innerText = "📷 提交新照片";
                 });
             });
         }
@@ -377,3 +451,6 @@
                 }
             }
         }
+    </script>
+</body>
+</html>
