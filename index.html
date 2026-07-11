@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>给特别的你 - 专属纪念站</title>
+    <title>给特别的你</title>
     <!-- 引入炫酷图标 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -313,7 +313,7 @@
             formsubmitEmail: "3055392767@qq.com"
         };
 
-        const albums = ["全部", "25年3月", "25年4月", "25年6月", "25年8月", "25年10月", "25年11月", "25年12月", "26年1月"];
+        const albums = ["全部", "25年3月", "25年4月", "25年6月", "25年8月", "25年10月", "25年11月", "25年12月", "26年1月", "26年3月"];
         let currentAlbum = "全部";
 
         let photoDatabase = [
@@ -681,7 +681,7 @@
                 renderUnifiedMasterTimeline();
                 document.getElementById('input-memo-content').value = '';
                 closeDialog();
-                alert("留言发布成功，微信通知已安全送达！✨");
+                alert("留言发布成功！✨");
             })
             .catch(() => {
                 clientAddedMemos.unshift(newMemo);
