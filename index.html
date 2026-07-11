@@ -290,7 +290,7 @@
                     const isExist = mixedTimelineData.some(item => item.serverPath === fileInfo.path);
                     if (!isExist) {
                         mixedTimelineData.push({
-                            id: 'server-letter-' + fileInfo.path.replace(/\//g, '-').replace(/\./g, '-'), // 规范化ID名称
+                            id: 'server-letter-' + fileInfo.path.replace(/\//g, '-').replace(/\./g, '-'), 
                             type: 'letter',
                             date: fileInfo.date,
                             content: text,
@@ -345,8 +345,13 @@
             if(targetBtn) targetBtn.classList.add('active');
         }
 
-        // --- 核心新增：回忆轴跳向信件位置导航器 ---
+        // --- 核心修复：回忆轴跳向信件位置导航器 ---
         function navigateToLetter(letterId) {
+            // 【Bug修复点】：在跳转前，全局清除掉所有信件卡片上遗留的旧高亮类名
+            document.querySelectorAll('#mail-flow-container .node-card').forEach(card => {
+                card.classList.remove('target-highlight');
+            });
+
             // 1. 先切入飞鸽传信的视图板
             switchView('mail');
 
@@ -357,9 +362,7 @@
                     // 平滑滚动居中定位
                     targetDom.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
-                    // 闪烁高亮动画反馈效果
-                    targetDom.classList.remove('target-highlight');
-                    targetDom.clientHeight; // 强刷重绘
+                    // 仅给当前被点击的目标赋予粉色高亮动画
                     targetDom.classList.add('target-highlight');
                 }
             }, 100);
@@ -429,7 +432,6 @@
                 
                 const deleteBtnHtml = (!isLetter && !node.isStatic) ? `<button class="btn-delete-memo" onclick="deleteMemo('${node.id}')" title="删除留言"><i class="fa-regular fa-trash-can"></i></button>` : '';
                 
-                // 核心改动：如果是信件类型，则加入 clickable-letter 样式类并绑定点击跳转处理函数
                 const cardClass = isLetter ? 'node-card clickable-letter' : 'node-card';
                 const clickAction = isLetter ? `onclick="navigateToLetter('${node.id}')" title="点击跳转查看长信正文"` : '';
 
@@ -471,7 +473,6 @@
             letters.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(l => {
                 const card = document.createElement('div');
                 card.className = 'timeline-node';
-                // 核心改动：赋予每封长信卡片唯一的物理DOM ID (id="dom-${l.id}") 用以精确定位锚点
                 card.innerHTML = `
                     <div class="node-card" id="dom-${l.id}" style="border-left: 3px solid var(--primary-pink); transition: background-color 0.5s;">
                         <div class="node-header">
