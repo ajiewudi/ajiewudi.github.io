@@ -129,15 +129,14 @@
         .top-action-bar { display: flex; justify-content: flex-end; gap: 12px; max-width: 1100px; margin: 0 auto 20px auto; padding-right: 20px; }
         .action-btn-mini { padding: 8px 16px; border-radius: 20px; border: none; font-size: 13px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
 
-        /* --- ✉️ ③ 飞鸽传信页面专属两栏布局 --- */
+        /* --- ✉️ ③ 飞鸽传信页面专属两栏布局（微调重点区） --- */
         .mail-view-layout {
-            display: flex; gap: 30px; width: 100%; height: 100%; align-items: flex-start;
+            display: flex; gap: 50px; width: 100%; max-width: 1240px; margin: 0 auto; height: 100%; align-items: flex-start;
         }
-        /* 左半边：专属纯信件时光轴 */
+        /* 左半边看信轴：缩减宽度，防止信件过度横向拉伸 */
         .mail-left-axis-zone {
-            flex: 1; height: 100%; overflow-y: auto; padding-right: 10px;
+            flex: 1; max-width: 680px; height: 100%; overflow-y: auto; padding-right: 15px;
         }
-        /* 纯信件轴专属微调，让中轴线在线区居中 */
         .mail-timeline-axis {
             position: relative; width: 100%; padding: 20px 0;
         }
@@ -155,9 +154,9 @@
             line-height: 20px; font-size: 11px; font-weight: bold; font-family: monospace; z-index: 10;
         }
 
-        /* 右半边：发送长信精致小卡片（宽度和版型完美契合截图） */
+        /* 右半边写信区：放大卡片、整体向左移靠拢 */
         .mail-right-write-zone {
-            width: 480px; background: #fffdf5; padding: 35px; border-radius: 16px;
+            width: 540px; background: #fffdf5; padding: 40px; border-radius: 16px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.05); border: 1px solid #f3eedb;
             flex-shrink: 0; position: sticky; top: 0;
         }
@@ -166,8 +165,10 @@
             display: flex; align-items: center; gap: 8px;
         }
         .mail-card-line { border-bottom: 1px dashed #eddcd2; margin-bottom: 20px; }
+        
+        /* 写信输入框：高度同步放大 */
         .letter-textarea {
-            width: 100%; height: 260px; background: transparent; border: none;
+            width: 100%; height: 320px; background: transparent; border: none;
             resize: none; font-family: inherit; font-size: 15px; line-height: 1.8;
             color: #444; outline: none; margin-bottom: 25px;
         }
@@ -259,18 +260,16 @@
             <div class="timeline-master-wrapper" id="timeline-master-flow"></div>
         </section>
 
-        <!-- ③ ✉️ 飞鸽传信全新的左右分栏轴线布局视图 -->
+        <!-- ③ ✉️ 飞鸽传信专属两栏视图 -->
         <section id="view-mail" class="view-section">
             <div class="mail-view-layout">
                 
-                <!-- 左半边：专属长信件时光轴流 -->
+                <!-- 左半边：专属长信件时光轴流（已缩减最大宽度约束） -->
                 <div class="mail-left-axis-zone">
-                    <div class="mail-timeline-axis" id="mail-flow-container">
-                        <!-- 由 JS 自动清洗并抓取纯长信文件进行瀑布流式渲染 -->
-                    </div>
+                    <div class="mail-timeline-axis" id="mail-flow-container"></div>
                 </div>
 
-                <!-- 右半边：发送信件独立拟物卡片（完美还原截图设计） -->
+                <!-- 右半边：发送信件卡片（已放大尺寸并向左挪移紧凑靠拢） -->
                 <div class="mail-right-write-zone">
                     <div class="mail-card-title">
                         <i class="fa-solid fa-feather"></i> 发送信件
@@ -401,9 +400,7 @@
             }
         }
 
-        // --- ① 核心 Bug 修复路由分发器 ---
         function switchView(viewId) {
-            // 解决 Bug：每次切换视图或点击导航栏时，立刻干净利落地拔掉所有长信卡片上的高亮闪烁类名
             document.querySelectorAll('#mail-flow-container .node-card').forEach(card => {
                 card.classList.remove('target-highlight');
             });
@@ -416,8 +413,8 @@
             if(targetBtn) targetBtn.classList.add('active');
         }
 
+        // 锚点跳转追踪器
         function navigateToLetter(letterId) {
-            // 从回忆轴跳入时，先调用分发器清洗高亮，再执行高亮闪烁
             switchView('mail');
             setTimeout(() => {
                 const targetDom = document.getElementById('dom-' + letterId);
@@ -428,7 +425,7 @@
             }, 100);
         }
 
-        // --- ② 时光相册逻辑 ---
+        // --- 时光相册逻辑 ---
         function renderAlbumTabs() {
             const container = document.getElementById('album-tabs-container');
             container.innerHTML = '';
@@ -471,7 +468,7 @@
             }
         }
 
-        // --- ② 中轴对称式回忆轴渲染器 ---
+        // --- 中轴对称式回忆轴渲染器 ---
         function renderUnifiedMasterTimeline() {
             const container = document.getElementById('timeline-master-flow');
             container.innerHTML = '';
@@ -550,12 +547,11 @@
             }
         }
 
-        // --- ② ✉️ 飞鸽传信专属左侧纯信件轴渲染器 ---
+        // --- ✉️ 飞鸽传信专属左侧纯信件轴渲染器 ---
         function renderMailFlow() {
             const container = document.getElementById('mail-flow-container');
             container.innerHTML = '';
             
-            // 洗涤池：只提取所有的信件（过滤掉照片和短留言）
             let allLetters = [...textDataPool, ...clientAddedMemos].filter(n => n.type === 'letter');
 
             if(allLetters.length === 0) {
@@ -563,12 +559,10 @@
                 return;
             }
 
-            // 按日期轴从新到旧排开
             allLetters.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(l => {
                 const row = document.createElement('div');
                 row.className = 'mail-timeline-row';
 
-                // 轴线上的时间绳结显示
                 const axisTag = document.createElement('div');
                 axisTag.className = 'mail-axis-tag';
                 try {
@@ -577,7 +571,6 @@
                 } catch(e) { axisTag.innerText = '✉️'; }
                 row.appendChild(axisTag);
 
-                // 完整的长信件正文卡片
                 const card = document.createElement('div');
                 card.className = 'node-card';
                 card.id = `dom-${l.id}`;
