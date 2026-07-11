@@ -88,7 +88,8 @@
         .timeline-box::before { content: ''; position: absolute; left: 5px; top: 0; width: 2px; height: 100%; background: #eddcd2; }
         .timeline-node { position: relative; margin-bottom: 25px; }
         .timeline-node::after { content: '♥'; position: absolute; left: -31px; top: 12px; background: var(--bg-cream); color: var(--primary-pink); width: 16px; height: 16px; border-radius: 50%; text-align: center; line-height: 16px; font-size: 10px; }
-        .node-card { background: white; padding: 20px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .node-card { background: white; padding: 20px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; }
+        .node-card.clickable-letter:hover { cursor: pointer; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,183,178,0.15); border: 1px solid rgba(255,183,178,0.4); }
         .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .node-tag-group { display: flex; align-items: center; gap: 8px; }
         .node-tag { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
@@ -108,6 +109,14 @@
         .letter-write-box { max-width: 600px; margin: 20px auto; background: #fffdf2; padding: 40px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); border: 1px solid #f3eedb; }
         .letter-textarea { width: 100%; height: 280px; background: transparent; border: none; resize: none; font-family: inherit; font-size: 15px; line-height: 1.8; color: #444; outline: none; }
         
+        /* 信件被回忆轴锁定跳转后的呼吸高亮动效 */
+        @keyframes highlightPulse {
+            0% { background-color: white; }
+            30% { background-color: #fff0f0; box-shadow: 0 0 15px rgba(255,183,178,0.6); }
+            100% { background-color: white; }
+        }
+        .target-highlight { animation: highlightPulse 1.5s ease-out; }
+
         /* --- 弹窗组件 --- */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center; }
         .dialog-window { background: white; width: 90%; max-width: 420px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -243,16 +252,15 @@
             { url: "images/25年8月/8月10日23:50.jpg", album: "25年8月", date: "2025-08-10" }
         ];
 
-        // 核心配置一：手动罗列你的真实信件文件路径 (来自 letters 文件夹)
+        // 真实静态信件文件
         const serverLetterFiles = [
             { path: "letters/25年12月/12月25日00:17.txt", date: "2025-12-25" },
             { path: "letters/25年12月/12月25日12:00.txt", date: "2025-12-25" }
         ];
 
-        // 新增核心配置二：手动罗列你的真实静态留言文件路径 (来自新增的 messages 文件夹)
+        // 真实静态留言文件
         const serverMessageFiles = [
             { path: "messages/26年7月/7月11日12:14.txt" }
-            // 以后在此处按照格式继续往下追加静态留言文件即可
         ];
 
         // 混合数据池
@@ -262,9 +270,7 @@
             if(localStorage.getItem('custom_photos_v2')) photoDatabase = JSON.parse(localStorage.getItem('custom_photos_v2'));
             if(localStorage.getItem('custom_timeline_v2')) mixedTimelineData = JSON.parse(localStorage.getItem('custom_timeline_v2'));
 
-            // 异步加载 GitHub 中的信件文件
             await loadLettersFromServer();
-            // 异步加载 GitHub 中的留言文件
             await loadMessagesFromServer();
 
             renderAlbumTabs();
@@ -284,7 +290,7 @@
                     const isExist = mixedTimelineData.some(item => item.serverPath === fileInfo.path);
                     if (!isExist) {
                         mixedTimelineData.push({
-                            id: 'server-letter-' + fileInfo.path,
+                            id: 'server-letter-' + fileInfo.path.replace(/\//g, '-').replace(/\./g, '-'), // 规范化ID名称
                             type: 'letter',
                             date: fileInfo.date,
                             content: text,
@@ -297,7 +303,7 @@
             }
         }
 
-        // 新增功能函数：从服务器异步读取 messages 文件夹里的留言文件
+        // 从服务器读取静态 messages 留言文件
         async function loadMessagesFromServer() {
             for (const fileInfo of serverMessageFiles) {
                 try {
@@ -305,10 +311,8 @@
                     if (!res.ok) continue;
                     const text = await res.text();
                     
-                    // 检查是否已经在全局数据中，防止重复载入
                     const isExist = mixedTimelineData.some(item => item.serverPath === fileInfo.path);
                     if (!isExist) {
-                        // 像信件那样解析：第一行为时间，第二行及后面为留言正文
                         const splitIndex = text.indexOf('\n');
                         let dateStr = "未知日期";
                         let bodyStr = text;
@@ -318,12 +322,12 @@
                         }
 
                         mixedTimelineData.push({
-                            id: 'server-memo-' + fileInfo.path,
+                            id: 'server-memo-' + fileInfo.path.replace(/\//g, '-').replace(/\./g, '-'),
                             type: 'memo',
                             date: dateStr,
                             content: bodyStr,
                             serverPath: fileInfo.path,
-                            isStatic: true // 标记是来自服务器的静态留言文件
+                            isStatic: true
                         });
                     }
                 } catch (err) {
@@ -339,6 +343,26 @@
             const targetBtn = document.getElementById('btn-nav-' + viewId);
             if(targetView) targetView.classList.add('active');
             if(targetBtn) targetBtn.classList.add('active');
+        }
+
+        // --- 核心新增：回忆轴跳向信件位置导航器 ---
+        function navigateToLetter(letterId) {
+            // 1. 先切入飞鸽传信的视图板
+            switchView('mail');
+
+            // 2. 异步等DOM渲染完毕后执行精准定位
+            setTimeout(() => {
+                const targetDom = document.getElementById('dom-' + letterId);
+                if (targetDom) {
+                    // 平滑滚动居中定位
+                    targetDom.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 闪烁高亮动画反馈效果
+                    targetDom.classList.remove('target-highlight');
+                    targetDom.clientHeight; // 强刷重绘
+                    targetDom.classList.add('target-highlight');
+                }
+            }, 100);
         }
 
         // --- ① 时光相册逻辑核心 ---
@@ -403,11 +427,14 @@
                 const card = document.createElement('div');
                 card.className = 'timeline-node';
                 
-                // 只有前端发布的临时留言（非静态留言文件且不是信件）才添加删除按钮
                 const deleteBtnHtml = (!isLetter && !node.isStatic) ? `<button class="btn-delete-memo" onclick="deleteMemo('${node.id}')" title="删除留言"><i class="fa-regular fa-trash-can"></i></button>` : '';
+                
+                // 核心改动：如果是信件类型，则加入 clickable-letter 样式类并绑定点击跳转处理函数
+                const cardClass = isLetter ? 'node-card clickable-letter' : 'node-card';
+                const clickAction = isLetter ? `onclick="navigateToLetter('${node.id}')" title="点击跳转查看长信正文"` : '';
 
                 card.innerHTML = `
-                    <div class="node-card">
+                    <div class="${cardClass}" ${clickAction}>
                         <div class="node-header">
                             <div class="node-tag-group">
                                 <span class="node-tag ${isLetter ? 'tag-letter' : 'tag-memo'}">${isLetter ? '💌 信件' : '💬 留言'}</span>
@@ -444,8 +471,9 @@
             letters.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(l => {
                 const card = document.createElement('div');
                 card.className = 'timeline-node';
+                // 核心改动：赋予每封长信卡片唯一的物理DOM ID (id="dom-${l.id}") 用以精确定位锚点
                 card.innerHTML = `
-                    <div class="node-card" style="border-left: 3px solid var(--primary-pink)">
+                    <div class="node-card" id="dom-${l.id}" style="border-left: 3px solid var(--primary-pink); transition: background-color 0.5s;">
                         <div class="node-header">
                             <span class="node-tag tag-letter">💌 信件正文</span>
                             <span class="node-date">${l.date}</span>
@@ -490,6 +518,11 @@
                 alert("长信已经安全寄出！❤️");
             })
             .catch(() => {
+                mixedTimelineData.unshift(newLetterNode);
+                localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
+                renderTimeline();
+                renderMailFlow();
+                textInput.value = '';
                 alert("网络有些小波动，但长信已离线存入本地空间！");
             })
             .finally(() => {
