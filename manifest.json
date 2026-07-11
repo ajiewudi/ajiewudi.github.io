@@ -1,0 +1,15 @@
+{
+  "name": "给特别的你",
+  "short_name": "专属空间",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fffdf6",
+  "theme_color": "#ffb7b2",
+  "icons": [
+    {
+      "src": "images/bg.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
