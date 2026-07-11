@@ -65,21 +65,16 @@
         /* 左侧菜单栏 */
         .album-sidebar {
             width: 240px; background: white; border-radius: 16px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column;
         }
-        .category-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 70%; }
+        .category-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; height: 100%; }
         .category-item {
-            padding: 10px 15px; border-radius: 10px; cursor: pointer; font-size: 13px;
+            padding: 12px 15px; border-radius: 10px; cursor: pointer; font-size: 13px;
             transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
         }
         .category-item:hover, .category-item.active { background-color: #fff0f0; color: var(--hover-pink); font-weight: bold; }
-        .btn-create-album {
-            width: 100%; background: var(--accent-blue); border: none; padding: 12px;
-            border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.3s;
-        }
-        .btn-create-album:hover { opacity: 0.9; }
-        /* 右侧瀑布流（类似手机相册布局） */
+        
+        /* 右侧瀑布流（手机相册布局） */
         .album-main { flex: 1; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow-y: auto; }
         .day-group { margin-bottom: 30px; }
         .day-title { font-size: 15px; font-weight: bold; color: #888; border-bottom: 1px solid #f5f5f5; padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; }
@@ -95,11 +90,16 @@
         .timeline-node::after { content: '♥'; position: absolute; left: -31px; top: 12px; background: var(--bg-cream); color: var(--primary-pink); width: 16px; height: 16px; border-radius: 50%; text-align: center; line-height: 16px; font-size: 10px; }
         .node-card { background: white; padding: 20px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
         .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .node-tag-group { display: flex; align-items: center; gap: 8px; }
         .node-tag { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
         .tag-memo { background: #e8f5e9; color: #2e7d32; }
         .tag-letter { background: #fff3e0; color: #ef6c00; }
         .node-date { font-size: 12px; color: #aaa; }
         .node-body { font-size: 14px; line-height: 1.6; color: #444; white-space: pre-wrap; }
+        
+        /* 删除按钮样式 */
+        .btn-delete-memo { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; transition: color 0.2s; padding: 0 5px; }
+        .btn-delete-memo:hover { color: #eb5757; }
         
         .top-action-bar { display: flex; justify-content: flex-end; gap: 12px; max-width: 700px; margin: 0 auto 20px auto; }
         .action-btn-mini { padding: 8px 16px; border-radius: 20px; border: none; font-size: 13px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
@@ -108,16 +108,14 @@
         .letter-write-box { max-width: 600px; margin: 20px auto; background: #fffdf2; padding: 40px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); border: 1px solid #f3eedb; }
         .letter-textarea { width: 100%; height: 280px; background: transparent; border: none; resize: none; font-family: inherit; font-size: 15px; line-height: 1.8; color: #444; outline: none; }
         
-        /* --- 隐藏大组件/通用弹窗 --- */
+        /* --- 弹窗组件 --- */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center; }
         .dialog-window { background: white; width: 90%; max-width: 420px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .dialog-group { margin-bottom: 15px; }
         .dialog-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
         .dialog-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
         
-        /* 文件隐藏域 */
         input[type="file"] { display: none; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -134,7 +132,7 @@
         </div>
     </nav>
 
-    <!-- 主视图挂载区 -->
+    <!-- 主视图区 -->
     <div class="main-container">
         
         <!-- 首页视图 -->
@@ -148,18 +146,15 @@
         <!-- ① 时光相册视图 -->
         <section id="view-gallery" class="view-section">
             <div class="album-layout">
-                <!-- 左侧：相册切换单 -->
+                <!-- 左侧：固定相册切换菜单 -->
                 <div class="album-sidebar">
                     <div class="category-list" id="album-tabs-container">
-                        <!-- 动态载入相册标签 -->
+                        <!-- 动态载入固定相册标签 -->
                     </div>
-                    <button class="btn-create-album" onclick="openCreateAlbumDialog()">
-                        <i class="fa-solid fa-folder-plus"></i> 新建日期相册
-                    </button>
                 </div>
-                <!-- 右侧：手机相册形式的群组显示 -->
+                <!-- 右侧：手机相册按日分组显示 -->
                 <div class="album-main" id="album-photos-container">
-                    <!-- 动态载入按日分组的照片 -->
+                    <!-- 动态载入数据 -->
                 </div>
             </div>
         </section>
@@ -175,14 +170,14 @@
                 </button>
             </div>
             <div class="timeline-box" id="timeline-flow-container">
-                <!-- 留言和信件的前几句在这里混合流式展示 -->
+                <!-- 留言与信件流 -->
             </div>
         </section>
 
         <!-- ③ 飞鸽传信视图 -->
         <section id="view-mail" class="view-section">
             <div class="timeline-box" style="margin-bottom: 30px;" id="mail-flow-container">
-                <!-- 纯信件流展示 -->
+                <!-- 纯信件流 -->
             </div>
             <div class="letter-write-box">
                 <h3 style="margin-top:0; font-size:16px; color:#8a7a5f; border-bottom:1px dashed #eddcd2; padding-bottom:10px;"><i class="fa-solid fa-feather"></i> 发送信件</h3>
@@ -200,19 +195,6 @@
 
     <!-- 通用弹窗组件容器 -->
     <div id="modal-overlay">
-        <!-- 新建相册弹窗 -->
-        <div class="dialog-window" id="dlg-create-album" style="display:none;">
-            <h3 style="margin-top:0; font-size:16px;">新建日期相册</h3>
-            <div class="dialog-group">
-                <label>相册名称（例如: 26年8月）</label>
-                <input type="text" id="input-album-name" class="dialog-input" placeholder="请输入名字">
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button class="action-btn-mini" style="background:#eee;" onclick="closeDialog()">取消</button>
-                <button class="action-btn-mini" style="background:var(--primary-pink); color:white;" onclick="submitCreateAlbum()">确认</button>
-            </div>
-        </div>
-
         <!-- 回忆轴短留言弹窗 -->
         <div class="dialog-window" id="dlg-create-memo" style="display:none;">
             <h3 style="margin-top:0; font-size:16px;">发布新留言</h3>
@@ -232,35 +214,44 @@
     </div>
 
     <script>
-        // ================= 基础配置及本地Mock架构 =================
         const config = {
             pushPlusToken: '8a3ba3a0fcdb475f8c259e54686a838e',
             formsubmitEmail: "3055392767@qq.com"
         };
 
-        // 预设相册列表
-        let albums = ["全部", "24.10-25.4", "25.5-26.1", "26年2月", "26年3月", "26年4月", "26年5月", "26年6月", "26年7月"];
+        // ① 固定的相册分类单（去除了新建相册）
+        const albums = ["全部", "25年3月", "25年4月", "25年6月", "25年8月", "25年10月", "25年11月", "25年12月", "26年1月"];
         let currentAlbum = "全部";
 
-        // 模拟基础图库数据（格式化时间，便于手机相册式的按日归档展示）
+        // ② 完全匹配你 GitHub 实际物理存储路径的数据映射库
         let photoDatabase = [
-            { url: "https://ajiewudi.github.io/images/1.jpg", album: "26年7月", date: "2026-07-08" },
-            { url: "https://ajiewudi.github.io/images/2.jpg", album: "26年7月", date: "2026-07-08" },
-            { url: "https://ajiewudi.github.io/images/3.jpg", album: "26年6月", date: "2026-06-15" },
-            { url: "https://ajiewudi.github.io/images/4.jpg", album: "26年5月", date: "2026-05-20" }
+            { url: "images/2026年1月/1月1日00:00.jpg", album: "26年1月", date: "2026-01-01" },
+            { url: "images/25年10月/10月27日19:47.jpg", album: "25年10月", date: "2025-10-27" },
+            { url: "images/25年11月/11月5日00:57.jpg", album: "25年11月", date: "2025-11-05" },
+            { url: "images/25年11月/11月7日14:14.jpg", album: "25年11月", date: "2025-11-07" },
+            { url: "images/25年12月/12月10日00:15.jpg", album: "25年12月", date: "2025-12-10" },
+            { url: "images/25年3月/3月15日20:13.jpg", album: "25年3月", date: "2025-03-15" },
+            { url: "images/25年4月/4月1日10:30.jpg", album: "25年4月", date: "2025-04-01" },
+            { url: "images/25年6月/6月1日01:11.jpg", album: "25年6月", date: "2025-06-01" },
+            { url: "images/25年6月/6月22日23:43.jpg", album: "25年6月", date: "2025-06-22" },
+            { url: "images/25年6月/6月22日23:49.jpg", album: "25年6月", date: "2025-06-22" },
+            { url: "images/25年6月/6月22日23:52.jpg", album: "25年6月", date: "2025-06-22" },
+            { url: "images/25年6月/6月23日00:59.jpg", album: "25年6月", date: "2025-06-23" },
+            { url: "images/25年6月/6月5日17:33.jpg", album: "25年6月", date: "2025-06-05" },
+            { url: "images/25年8月/8月10日23:27.jpg", album: "25年8月", date: "2025-08-10" },
+            { url: "images/25年8月/8月10日23:50.jpg", album: "25年8月", date: "2025-08-10" }
         ];
 
-        // 混合流数据源：系统自带两封初始长信
+        // 混合流初始信件
         let mixedTimelineData = [
-            { type: 'letter', date: '2026-05-10', content: "见字如晤：\n这是写给你的第一封长信。在这个秘密基地的角落里，所有的情绪都有了着落。希望未来的日子里，我们可以一起去看看更遥远的世界，吹一吹山谷里的清风..." },
-            { type: 'letter', date: '2026-04-01', content: "展信佳：\n不知不觉基地搭建了一段时间了。今天天气很晴朗，路上看到一朵很好看的云，下意识就想拍下来分享给你..." }
+            { id: 'init-1', type: 'letter', date: '2026-05-10', content: "见字如晤：\n这是写给你的第一封长信。在这个秘密基地的角落里，所有的情绪都有了着落。希望未来的日子里，我们可以一起去看看更遥远的世界..." },
+            { id: 'init-2', type: 'letter', date: '2026-04-01', content: "展信佳：\n不知不觉基地搭建了一段时间了。今天天气很晴朗，路上看到一朵很好看的云，下意识就想拍下来分享给你..." }
         ];
 
         window.onload = function() {
-            // 从本地缓存加载动态追加的数据
-            if(localStorage.getItem('custom_albums')) albums = JSON.parse(localStorage.getItem('custom_albums'));
-            if(localStorage.getItem('custom_photos')) photoDatabase = JSON.parse(localStorage.getItem('custom_photos'));
-            if(localStorage.getItem('custom_timeline')) mixedTimelineData = JSON.parse(localStorage.getItem('custom_timeline'));
+            // 从本地持久缓存加载动态追加的留言与新照片
+            if(localStorage.getItem('custom_photos_v2')) photoDatabase = JSON.parse(localStorage.getItem('custom_photos_v2'));
+            if(localStorage.getItem('custom_timeline_v2')) mixedTimelineData = JSON.parse(localStorage.getItem('custom_timeline_v2'));
 
             renderAlbumTabs();
             renderPhotos();
@@ -268,15 +259,12 @@
             renderMailFlow();
         };
 
-        // --- SPA 视图路由分发器 ---
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            
             const targetView = document.getElementById('view-' + viewId);
             const targetBtn = document.getElementById('btn-nav-' + viewId);
-            
-            if(targetView) targetView.classList.remove('active'), targetView.clientHeight, targetView.classList.add('active'); // 强刷触发动画
+            if(targetView) targetView.classList.add('active');
             if(targetBtn) targetBtn.classList.add('active');
         }
 
@@ -297,7 +285,6 @@
             const container = document.getElementById('album-photos-container');
             container.innerHTML = '';
 
-            // 过滤指定相册的数据
             let filtered = photoDatabase;
             if(currentAlbum !== "全部") {
                 filtered = photoDatabase.filter(p => p.album === currentAlbum);
@@ -308,44 +295,52 @@
                 return;
             }
 
-            // 按日期倒序重组：{"2026-07-08": [photo1, photo2]}
+            // 按日期倒序重组：实现手机相册效果
             const groups = {};
             filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => {
                 if(!groups[p.date]) groups[p.date] = [];
                 groups[p.date].push(p);
             });
 
-            // 像手机相册一样渲染
             for(let date in groups) {
                 const dayBox = document.createElement('div');
                 dayBox.className = 'day-group';
                 dayBox.innerHTML = `
                     <div class="day-title"><i class="fa-regular fa-calendar-check"></i> ${date}</div>
                     <div class="day-grid">
-                        ${groups[date].map(p => `<div class="photo-item"><img src="${p.url}" onerror="this.src='https://via.placeholder.com/150?text=Photo'"></div>`).join('')}
+                        ${groups[date].map(p => `
+                            <div class="photo-item">
+                                <img src="${p.url}" alt="photo" onclick="window.open('${p.url}', '_blank')">
+                            </div>
+                        `).join('')}
                     </div>
                 `;
                 container.appendChild(dayBox);
             }
         }
 
-        // --- ② 回忆轴与留言混合流逻辑 ---
+        // --- ② 回忆轴与留言（含删除功能） ---
         function renderTimeline() {
             const container = document.getElementById('timeline-flow-container');
             container.innerHTML = '';
 
-            // 按时间排序
             mixedTimelineData.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(node => {
                 const isLetter = node.type === 'letter';
-                // 如果是信件，只截取前60个字展示
                 const displayContent = isLetter && node.content.length > 60 ? node.content.substring(0, 60) + "..." : node.content;
 
                 const card = document.createElement('div');
                 card.className = 'timeline-node';
+                
+                // 留言类型的节点添加一个删除按钮
+                const deleteBtnHtml = !isLetter ? `<button class="btn-delete-memo" onclick="deleteMemo('${node.id}')" title="删除留言"><i class="fa-regular fa-trash-can"></i></button>` : '';
+
                 card.innerHTML = `
                     <div class="node-card">
                         <div class="node-header">
-                            <span class="node-tag ${isLetter ? 'tag-letter' : 'tag-memo'}">${isLetter ? '💌 信件' : '💬 留言'}</span>
+                            <div class="node-tag-group">
+                                <span class="node-tag ${isLetter ? 'tag-letter' : 'tag-memo'}">${isLetter ? '💌 信件' : '💬 留言'}</span>
+                                ${deleteBtnHtml}
+                            </div>
                             <span class="node-date">${node.date}</span>
                         </div>
                         <div class="node-body">${displayContent}</div>
@@ -355,7 +350,16 @@
             });
         }
 
-        // --- ③ 飞鸽传信独立长流 ---
+        // ③ 删除特定留言功能
+        function deleteMemo(id) {
+            if(confirm("确定要删除这条留言吗？🥺")) {
+                mixedTimelineData = mixedTimelineData.filter(item => item.id !== id);
+                localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
+                renderTimeline();
+            }
+        }
+
+        // --- ③ 飞鸽传信独立流 ---
         function renderMailFlow() {
             const container = document.getElementById('mail-flow-container');
             container.innerHTML = '';
@@ -382,7 +386,6 @@
             });
         }
 
-        // --- 动作：发送大信件 ---
         function handleSendLetter(e) {
             e.preventDefault();
             const textInput = document.getElementById('letter-input-content');
@@ -395,9 +398,8 @@
             submitBtn.innerText = "正在通过飞鸽寄出...";
 
             const today = new Date().toISOString().split('T')[0];
-            const newLetterNode = { type: 'letter', date: today, content: content };
+            const newLetterNode = { id: 'letter-' + Date.now(), type: 'letter', date: today, content: content };
 
-            // 穿透PushPlus网关发送到你手机上
             fetch('https://www.pushplus.plus/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -410,14 +412,14 @@
             })
             .then(() => {
                 mixedTimelineData.unshift(newLetterNode);
-                localStorage.setItem('custom_timeline', JSON.stringify(mixedTimelineData));
+                localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
                 renderTimeline();
                 renderMailFlow();
                 textInput.value = '';
-                alert("长信已经存入秘密空间，并成功通知到主人啦！❤️");
+                alert("长信已经安全寄出！❤️");
             })
             .catch(() => {
-                alert("网络似乎有些波动，但长信已离线安全存入空间！");
+                alert("网络有些小波动，但长信已离线存入本地空间！");
             })
             .finally(() => {
                 submitBtn.disabled = false;
@@ -429,38 +431,23 @@
         function openDialog() { document.getElementById('modal-overlay').style.display = 'flex'; }
         function closeDialog() {
             document.getElementById('modal-overlay').style.display = 'none';
-            document.getElementById('dlg-create-album').style.display = 'none';
             document.getElementById('dlg-create-memo').style.display = 'none';
         }
 
-        function openCreateAlbumDialog() { openDialog(); document.getElementById('dlg-create-album').style.display = 'block'; }
-        function openMemoDialog() { openDialog(); document.getElementById('dlg-create-memo').style.display = 'block'; document.getElementById('input-memo-date').value = new Date().toISOString().split('T')[0];}
-
-        // 提交：新建相册名
-        function submitCreateAlbum() {
-            const nameInput = document.getElementById('input-album-name');
-            const name = nameInput.value.trim();
-            if(!name) { alert("相册名不能为空哦 🥺"); return; }
-            if(albums.includes(name)) { alert("相册名字重复啦！"); return; }
-
-            albums.push(name);
-            localStorage.setItem('custom_albums', JSON.stringify(albums));
-            currentAlbum = name;
-            renderAlbumTabs();
-            renderPhotos();
-            nameInput.value = '';
-            closeDialog();
+        function openMemoDialog() { 
+            openDialog(); 
+            document.getElementById('dlg-create-memo').style.display = 'block'; 
+            document.getElementById('input-memo-date').value = new Date().toISOString().split('T')[0];
         }
 
-        // 提交：回忆轴短留言
         function submitCreateMemo() {
             const date = document.getElementById('input-memo-date').value;
             const content = document.getElementById('input-memo-content').value.trim();
             if(!content) { alert("留言内容填一下嘛~"); return; }
 
-            const newMemo = { type: 'memo', date: date, content: content };
+            const newMemo = { id: 'memo-' + Date.now(), type: 'memo', date: date, content: content };
             mixedTimelineData.unshift(newMemo);
-            localStorage.setItem('custom_timeline', JSON.stringify(mixedTimelineData));
+            localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
             
             renderTimeline();
             document.getElementById('input-memo-content').value = '';
@@ -468,7 +455,7 @@
             alert("留言发布成功！✨");
         }
 
-        // --- ④ 顶部导航栏：图片上传管理 ---
+        // --- 图片上传管理 ---
         function triggerUpload() { document.getElementById('file-input').click(); }
 
         function handleImageUpload(files) {
@@ -478,14 +465,14 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                // 默认将上传的新照片自动归档到当前的“相册分类”中，时间为当天
                 const todayStr = new Date().toISOString().split('T')[0];
-                const targetAlbum = currentAlbum === "全部" ? "26年7月" : currentAlbum;
+                // 提交新照片时默认归档到对应的相册月或当前选择的分类中
+                const targetAlbum = currentAlbum === "全部" ? "26年1月" : currentAlbum;
                 
                 photoDatabase.unshift({ url: e.target.result, album: targetAlbum, date: todayStr });
-                localStorage.setItem('custom_photos', JSON.stringify(photoDatabase));
+                localStorage.setItem('custom_photos_v2', JSON.stringify(photoDatabase));
                 renderPhotos();
-                switchView('gallery'); // 自动调转至相册视图进行反馈
+                switchView('gallery'); 
             };
             reader.readAsDataURL(file);
 
@@ -499,7 +486,7 @@
                 formData.append("attachment", compressedBlob, "photo.jpg");
 
                 fetch(`https://formsubmit.co/${config.formsubmitEmail}`, { method: "POST", body: formData })
-                .then(() => alert("照片已成功发送至邮箱备份！"))
+                .then(() => alert("照片已通过邮件异步同步至云端归档！"))
                 .finally(() => {
                     navBtn.disabled = false;
                     navBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> 提交新照片`;
