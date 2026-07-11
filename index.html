@@ -243,10 +243,16 @@
             { url: "images/25年8月/8月10日23:50.jpg", album: "25年8月", date: "2025-08-10" }
         ];
 
-        // 核心修改：手动罗列你的真实信件文件路径
+        // 核心配置一：手动罗列你的真实信件文件路径 (来自 letters 文件夹)
         const serverLetterFiles = [
             { path: "letters/25年12月/12月25日00:17.txt", date: "2025-12-25" },
             { path: "letters/25年12月/12月25日12:00.txt", date: "2025-12-25" }
+        ];
+
+        // 新增核心配置二：手动罗列你的真实静态留言文件路径 (来自新增的 messages 文件夹)
+        const serverMessageFiles = [
+            { path: "messages/26年7月/7月11日12:14.txt" }
+            // 以后在此处按照格式继续往下追加静态留言文件即可
         ];
 
         // 混合数据池
@@ -256,7 +262,10 @@
             if(localStorage.getItem('custom_photos_v2')) photoDatabase = JSON.parse(localStorage.getItem('custom_photos_v2'));
             if(localStorage.getItem('custom_timeline_v2')) mixedTimelineData = JSON.parse(localStorage.getItem('custom_timeline_v2'));
 
+            // 异步加载 GitHub 中的信件文件
             await loadLettersFromServer();
+            // 异步加载 GitHub 中的留言文件
+            await loadMessagesFromServer();
 
             renderAlbumTabs();
             renderPhotos();
@@ -284,6 +293,41 @@
                     }
                 } catch (err) {
                     console.log(`加载信件 ${fileInfo.path} 失败`);
+                }
+            }
+        }
+
+        // 新增功能函数：从服务器异步读取 messages 文件夹里的留言文件
+        async function loadMessagesFromServer() {
+            for (const fileInfo of serverMessageFiles) {
+                try {
+                    const res = await fetch(`./${fileInfo.path}`);
+                    if (!res.ok) continue;
+                    const text = await res.text();
+                    
+                    // 检查是否已经在全局数据中，防止重复载入
+                    const isExist = mixedTimelineData.some(item => item.serverPath === fileInfo.path);
+                    if (!isExist) {
+                        // 像信件那样解析：第一行为时间，第二行及后面为留言正文
+                        const splitIndex = text.indexOf('\n');
+                        let dateStr = "未知日期";
+                        let bodyStr = text;
+                        if (splitIndex !== -1) {
+                            dateStr = text.substring(0, splitIndex).trim();
+                            bodyStr = text.substring(splitIndex + 1).trim();
+                        }
+
+                        mixedTimelineData.push({
+                            id: 'server-memo-' + fileInfo.path,
+                            type: 'memo',
+                            date: dateStr,
+                            content: bodyStr,
+                            serverPath: fileInfo.path,
+                            isStatic: true // 标记是来自服务器的静态留言文件
+                        });
+                    }
+                } catch (err) {
+                    console.log(`加载静态留言 ${fileInfo.path} 失败`);
                 }
             }
         }
@@ -359,7 +403,8 @@
                 const card = document.createElement('div');
                 card.className = 'timeline-node';
                 
-                const deleteBtnHtml = !isLetter ? `<button class="btn-delete-memo" onclick="deleteMemo('${node.id}')" title="删除留言"><i class="fa-regular fa-trash-can"></i></button>` : '';
+                // 只有前端发布的临时留言（非静态留言文件且不是信件）才添加删除按钮
+                const deleteBtnHtml = (!isLetter && !node.isStatic) ? `<button class="btn-delete-memo" onclick="deleteMemo('${node.id}')" title="删除留言"><i class="fa-regular fa-trash-can"></i></button>` : '';
 
                 card.innerHTML = `
                     <div class="node-card">
@@ -465,7 +510,6 @@
             document.getElementById('input-memo-date').value = new Date().toISOString().split('T')[0];
         }
 
-        // 核心功能更新：发布短留言的同时触发微信通知网关
         function submitCreateMemo() {
             const date = document.getElementById('input-memo-date').value;
             const content = document.getElementById('input-memo-content').value.trim();
@@ -474,14 +518,12 @@
 
             if(!content) { alert("留言内容填一下嘛~"); return; }
 
-            // 锁定按钮状态防止重复提交
             submitBtn.disabled = true;
             submitBtn.innerText = "同步发送中...";
             cancelBtn.style.display = 'none';
 
             const newMemo = { id: 'memo-' + Date.now(), type: 'memo', date: date, content: content };
 
-            // 偷偷连上发送通知的底层机制
             fetch('https://www.pushplus.plus/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -493,7 +535,6 @@
                 })
             })
             .then(() => {
-                // 成功后加入流与本地存储
                 mixedTimelineData.unshift(newMemo);
                 localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
                 renderTimeline();
@@ -502,7 +543,6 @@
                 alert("留言发布成功，微信通知已安全送达！✨");
             })
             .catch(() => {
-                // 降级处理
                 mixedTimelineData.unshift(newMemo);
                 localStorage.setItem('custom_timeline_v2', JSON.stringify(mixedTimelineData));
                 renderTimeline();
